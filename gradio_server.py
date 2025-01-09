@@ -19,7 +19,7 @@ def search_image(query, num_results):
 textbox = gr.Textbox(label="Type your query here:", placeholder="dog", lines=1)
 
 # 定义返回图片数量的滑块
-slider = gr.Slider(label="Number of results", minimum=3, maximum=12, step=3)
+slider = gr.Slider(label="Number of results", minimum=3, maximum=12, step=1)
 
 # 定义输出为图片类型
 interface = gr.Interface(

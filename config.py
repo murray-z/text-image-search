@@ -1,5 +1,5 @@
 # Model
-CLIP_MODEL_NAME_OR_PATH = "openai/clip-vit-base-patch32"
+CLIP_MODEL_NAME_OR_PATH = "./clip-vit-base-patch32"
 
 # Milvus
 MILVUS_HOST = "./milvus_db/milvus.db"
