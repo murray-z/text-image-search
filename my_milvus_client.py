@@ -42,26 +42,40 @@ class MyMilvusClient:
                 "vector": image_embedding,
                 "img_path": image_paths[i]
             })
-        print(entities)
+        # print(entities)
 
         # Insert data into Milvus
         insert_res = self.client.insert(collection_name=MILVUS_COLLECTION_NAME, data=entities)
         print(insert_res)
 
-    def search_image(self, query, top_k=5):
+    def search_image(self, query, image_path, top_k=5):
         search_img_path = []
-        query_vector = encoder_text(query, text_model, text_tokenizer)
-        print(query_vector)
-        res = self.client.search(
-            collection_name=MILVUS_COLLECTION_NAME,  # target collection
-            data=[query_vector],  # a list of one or more query vectors, supports batch
-            limit=top_k,  # how many results to return (topK)
-            output_fields=["img_path"],  # what fields to return
-            anns_field="vector",  # which field to search
-        )
-        for d in res[0]:
-            search_img_path.append(d['entity']['img_path'])
-        return search_img_path
+        if image_path:
+            image_query_vector = encoder_image(image_path, image_model, image_processor)
+            image_res = self.client.search(
+                collection_name=MILVUS_COLLECTION_NAME,  # target collection
+                data=[image_query_vector],  # a list of one or more query vectors, supports batch
+                limit=top_k,  # how many results to return (topK)
+                output_fields=["img_path"],  # what fields to return
+                anns_field="vector",  # which field to search
+            )
+            for d in image_res[0]:
+                search_img_path.append((d['entity']['img_path'], d['distance']))
+
+        if query:
+            text_query_vector = encoder_text(query, text_model, text_tokenizer)
+            text_res = self.client.search(
+                collection_name=MILVUS_COLLECTION_NAME,  # target collection
+                data=[text_query_vector],  # a list of one or more query vectors, supports batch
+                limit=top_k,  # how many results to return (topK)
+                output_fields=["img_path"],  # what fields to return
+                anns_field="vector",  # which field to search
+            )
+            for d in text_res[0]:
+                search_img_path.append((d['entity']['img_path'], d['distance']))
+        search_img_path = sorted(search_img_path, key=lambda x: -x[1])
+        # print(search_img_path)
+        return [p for p, s in search_img_path][:top_k]
 
 
 if __name__ == '__main__':
